@@ -263,4 +263,19 @@ export const variableTree = {
             }
         }
     },
+    "HEADER:hospital level data": {},  
+    "Adult Bed Utilization": {
+        "Point": {
+            "HealthData.gov": {
+                "geojson":'point_hospital.geojson'
+            }
+        }
+    },  
+    "ICU Bed Utilization": {
+        "Point": {
+            "HealthData.gov": {
+                "geojson":'point_hospital.geojson'
+            }
+        }
+    },
 }

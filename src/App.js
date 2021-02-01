@@ -127,7 +127,7 @@ function App() {
       let denomIndices = DateIndices[dataParams.numerator]
       let lastIndex = denomIndices !== null ? denomIndices.slice(-1,)[0] : null;
       let chartData = getDataForCharts(tempData, 'cases', DateIndices['cases'], dateLists.isoDateList);
-      let binData = getDataForBins(tempData, {...dataParams, nIndex: lastIndex || dataParams.nIndex, binIndex: lastIndex || dataParams.binIndex});
+      let binData = (dataParams.fixedScale === null || dataParams.fixedScale === undefined) ? getDataForBins(tempData, {...dataParams, nIndex: lastIndex || dataParams.nIndex, binIndex: lastIndex || dataParams.binIndex}) : ''
       let bins;
 
       if (dataParams.fixedScale === null || dataParams.fixedScale === undefined){

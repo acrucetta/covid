@@ -478,6 +478,34 @@ const VariablePanel = (props) => {
       fixedScale: 'forecasting',
       scale3D: 50000
     },
+    "Adult Bed Utilization": {
+      variableName:"Adult Bed Utilization",
+      numerator: 'hospital_beds_used',
+      nType: 'time-series',
+      nProperty: null,
+      denominator: 'hospital_beds',
+      dType: 'time-series',
+      dProperty: null,
+      dIndex:null,
+      scale:100,
+      scale3D: 10000000,
+      colorScale: 'hospital-utilization',
+      fixedScale:'hospital-utilization'
+    },
+    "ICU Bed Utilization": {
+      variableName:"ICU Bed Utilization",
+      numerator: 'hospital_icu_beds_used',
+      nType: 'time-series',
+      nProperty: null,
+      denominator: 'hospital_icu_beds',
+      dType: 'time-series',
+      dProperty: null,
+      dIndex:null,
+      scale:100,
+      scale3D: 10000000,
+      colorScale: 'hospital-utilization',
+      fixedScale:'hospital-utilization'
+    },
   }
 
   // mobility variable overlays
@@ -686,20 +714,26 @@ const VariablePanel = (props) => {
   //   setBivariateZ(prev => !prev )
   // }
   
+  
   const datasetTree = {
     'County': {
       '1point3acres':'county_1p3a.geojson',
       'New York Times':'county_nyt.geojson',
       'USA Facts':'county_usfacts.geojson',
       'CDC':'cdc.geojson',
-      'Yu Group at Berkeley':'county_usfacts.geojson',
+      // 'Yu Group at Berkeley':'county_usfacts.geojson',
       'County Health Rankings':'county_usfacts.geojson',
+      'COVID Exposure Indices':'county_usfacts.geojson',
+      'Safegraph':'county_usfacts.geojson',
     }, 
     'State': {
       '1point3acres':'state_1p3a.geojson',
       'New York Times':'state_nyt.geojson',
       'CDC':'state_1p3a.geojson',
       'County Health Rankings':'state_1p3a.geojson',
+    },
+    'Point': {
+      'HealthData.gov': 'point_hospital.geojson'
     }
   }
 
@@ -735,8 +769,15 @@ const VariablePanel = (props) => {
     'cdc.geojson': {
       name: 'CDC',
       geography: 'County'
+    },
+    'point_hospital.geojson': {
+      name: 'HealthData.gov',
+      geography: 'Point'
     }
   }
+
+  const allGeographies = ['County', 'State', 'Point']
+  const allDatasets = ['1point3acres', 'USA Facts', 'New York Times', 'CDC', 'County Health Rankings','Yu Group at Berkeley', 'HealthData.gov'] // "COVID Exposure Indices", 'Safegraph', 
 
   const [newVariable, setNewVariable] = useState("Confirmed Count per 100K Population");
   const [currentGeography, setCurrentGeography] = useState('County');
@@ -760,10 +801,10 @@ const VariablePanel = (props) => {
     let tempDataset = currentDataset;
 
     let resetDateRange = 
-    VariablePresets[e.target.value].nType === 'time-series' && 
-    (dataParams.nType === 'characteristic' || dataParams.variableName.indexOf("Testing") !== -1) && 
-    dataParams.nRange === null &&
-    VariablePresets[e.target.value].variableName.indexOf("Testing") === -1 && VariablePresets[e.target.value].nType !== 'characteristic';
+      VariablePresets[e.target.value].nType === 'time-series' && 
+      (dataParams.nType === 'characteristic' || dataParams.variableName.indexOf("Testing") !== -1) && 
+      dataParams.nRange === null &&
+      VariablePresets[e.target.value].variableName.indexOf("Testing") === -1 && VariablePresets[e.target.value].nType !== 'characteristic';
 
     let nIndex = resetDateRange ? 'nRange' : null;
     
@@ -773,8 +814,6 @@ const VariablePanel = (props) => {
     if (!variableTree[e.target.value].hasOwnProperty(tempGeography) || !variableTree[e.target.value][tempGeography].hasOwnProperty(tempDataset)) {
       tempGeography = Object.keys(variableTree[e.target.value])[0]
       tempDataset = Object.keys(variableTree[e.target.value][tempGeography])[0];
-
-      
       dispatch(setParametersAndData({
         params: {
           ...VariablePresets[e.target.value],
@@ -849,9 +888,6 @@ const VariablePanel = (props) => {
         dispatch(setMapParams({binMode:'dynamic'}))
     }
   }
-
-  const allGeographies = ['County', 'State']
-  const allDatasets = ['1point3acres', 'USA Facts', 'New York Times', 'CDC', 'County Health Rankings', 'Yu Group at Berkeley'] //
 
   return (
     <VariablePanelContainer className={panelState.variables ? '' : 'hidden'} otherPanels={panelState.info} id="variablePanel">

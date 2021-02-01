@@ -122,7 +122,7 @@ export const colorScales = {
         [65,171,93],
         [35,139,69],
         [0,90,50],
-      ]
+      ],
 }
 
 export const fixedScales = {
@@ -140,7 +140,10 @@ export const fixedScales = {
     'forecasting': {
         bins: ['N/A','Low', 'Medium', 'High'],
         breaks:[1,2,3,4]
-
+    },
+    'hospital-utilization':{
+      bins: ['0%', '25%','50%','75%','100%'],
+      breaks:[0,25,50,75,100]
     }
 }
 
@@ -270,6 +273,39 @@ export const dataPresets = {
         tableNames: ['cases','deaths', 'predictions', 'chr_health_context', 'chr_life', 'chr_health_factors','testing', 'testing_wk_pos', 'testing_tcap', 'testing_ccpt'],
         accumulate: [],
         dateList: {'covid_confirmed_usafacts': 'usDateList', 'covid_deaths_usafacts': 'usDateList','covid_testing_cdc': 'isoDateList', 'covid_wk_pos_cdc': 'isoDateList', 'covid_tcap_cdc': 'isoDateList', 'covid_ccpt_cdc': 'isoDateList'}
+    },
+    'point_hospital.geojson' : {
+      plainName: 'Hospital Point Data',
+      geojson: 'point_hospital.geojson',
+      csvs: [
+        'hospital_beds',
+        'hospital_beds_used',
+        'hospital_icu_beds',
+        'hospital_icu_beds_used',
+        'hospital_cases',
+      ],
+      joinCols: ['fid', ['fid']],
+      tableNames: [
+        'hospital_beds',
+        'hospital_beds_used',
+        'hospital_icu_beds',
+        'hospital_icu_beds_used',
+        'cases',
+      ],
+      accumulate: [
+        'hospital_beds',
+        'hospital_beds_used',
+        'hospital_icu_beds',
+        'hospital_icu_beds_used',
+        'hospital_cases',
+      ],
+      dateList: {
+        'hospital_beds': 'isoDateList',
+        'hospital_beds_used': 'isoDateList',
+        'hospital_icu_beds': 'isoDateList',
+        'hospital_icu_beds_used': 'isoDateList',
+        'hospital_cases': 'isoDateList',        
+      }
     }
 }
 
@@ -637,6 +673,34 @@ export const variablePresets = {
       colorScale: 'forecasting',
       fixedScale: 'forecasting',
       scale3D: 50000
+    },
+    "Adult Bed Utilization": {
+      variableName:"Staffed ICU Bed Utilization",
+      numerator: 'hospital_beds_used',
+      nType: 'time-series',
+      nProperty: null,
+      denominator: 'hospital_beds',
+      dType: 'time-series',
+      dProperty: null,
+      dIndex:null,
+      scale:100,
+      scale3D: 10000000,
+      colorScale: null,
+      fixedScale:null
+    },
+    "ICU Bed Utilization": {
+      variableName:"Staffed ICU Bed Utilization",
+      numerator: 'hospital_icu_beds_used',
+      nType: 'time-series',
+      nProperty: null,
+      denominator: 'hospital_icu_beds',
+      dType: 'time-series',
+      dProperty: null,
+      dIndex:null,
+      scale:100,
+      scale3D: 10000000,
+      colorScale: null,
+      fixedScale:null
     },
 }
   

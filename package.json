@@ -37,6 +37,7 @@
     "recharts": "^1.8.5",
     "redux": "^4.0.5",
     "styled-components": "^5.2.1",
+    "supercluster": "^7.1.2",
     "web-vitals": "^0.2.4",
     "webfontloader": "^1.6.28"
   },

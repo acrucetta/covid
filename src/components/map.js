@@ -21,6 +21,8 @@ import { mapFn, dataFn, getVarId, getCSV, getCartogramCenter, getDataForCharts, 
 import { colors, colorScales } from '../config';
 import MAP_STYLE from '../config/style.json';
 import { selectRect } from '../config/svg'; 
+import IconClusterLayer from '../layers/icon-cluster-layer';
+import ClusterAtlas from '../layers/data/location-icon-mapping.json';
 
 // US bounds
 const bounds = fitBounds({
@@ -51,6 +53,10 @@ const ICON_MAPPING = {
 // mapbox API token
 const MAPBOX_ACCESS_TOKEN = 'pk.eyJ1IjoibGl4dW45MTAiLCJhIjoiY2locXMxcWFqMDAwenQ0bTFhaTZmbnRwaiJ9.VRNeNnyb96Eo-CorkJmIqg';
 
+
+const DATA_URL = {
+    METEORITES: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/icon/meteorites.json'
+}
 // mapbox default style from Json
 const defaultMapStyle = fromJS(MAP_STYLE);
 
@@ -66,6 +72,9 @@ const MapContainer = styled.div`
         div.mapboxgl-ctrl-geocoder {
             display:none;
         }
+    }
+    div#view-MapView {
+        z-index:${props => props.mapboxOnTop ? 500 : 'initial'};
     }
 `
 
@@ -126,7 +135,7 @@ const MapButtonContainer = styled.div`
     position: absolute;
     right: ${props => props.infoPanel ? 317 : 10}px;
     bottom: 30px;
-    zIndex: 10;
+    z-index: 10;
     transition: 250ms all;
     @media (max-width:768px) {
         bottom:100px;
@@ -362,32 +371,43 @@ const Map = (props) => {
     }, [urlParams])
 
     useEffect(() => {
-        switch(mapParams.vizType) {
-            case 'cartogram':
-                if (storedCartogramData !== undefined) {
-                    setCurrentMapData(prev => ({
-                        params: prev.params,
-                        data: cleanData({
-                            data: storedCartogramData,
-                            bins: {bins: mapParams.bins.bins, breaks:mapParams.bins.breaks}, 
-                            mapType: mapParams.mapType, 
-                            vizType: mapParams.vizType
-                        })
-                    }))
-                }
-                break;
-            default:
-                if (storedData[currentData] !== undefined) {
-                    setCurrentMapData(prev => ({
-                        params: prev.params,
-                        data: cleanData({
-                            data: storedData[currentData],
-                            bins: {bins: mapParams.bins.bins, breaks:mapParams.bins.breaks}, 
-                            mapType: mapParams.mapType, 
-                            vizType: mapParams.vizType
-                        })
-                    }))
-                }
+        if (currentData.indexOf('point')!==-1){
+            if (storedData[currentData] !== undefined) {
+                setCurrentMapData(prev => ({
+                    params: prev.params,
+                    data: cleanData({
+                        data: storedData[currentData],
+                        dataName: currentData,
+                        bins: {bins: mapParams.bins.bins, breaks:mapParams.bins.breaks}, 
+                        mapType: mapParams.mapType, 
+                        vizType: mapParams.vizType
+                    })
+                }))
+            }
+        } else if (mapParams.vizType === 'cartogram') {
+            if (storedCartogramData !== undefined) {
+                setCurrentMapData(prev => ({
+                    params: prev.params,
+                    data: cleanData({
+                        data: storedCartogramData,
+                        bins: {bins: mapParams.bins.bins, breaks:mapParams.bins.breaks}, 
+                        mapType: mapParams.mapType, 
+                        vizType: mapParams.vizType
+                    })
+                }))
+            }
+        } else {
+            if (storedData[currentData] !== undefined) {
+                setCurrentMapData(prev => ({
+                    params: prev.params,
+                    data: cleanData({
+                        data: storedData[currentData],
+                        bins: {bins: mapParams.bins.bins, breaks:mapParams.bins.breaks}, 
+                        mapType: mapParams.mapType, 
+                        vizType: mapParams.vizType
+                    })
+                }))
+            }
         }
     },[mapParams.mapType, mapParams.vizType, mapParams.bins.bins, mapParams.bins.breaks, mapParams.binMode, mapParams.fixedScale, mapParams.vizType, mapParams.colorScale, mapParams.customScale, dataParams.nIndex, dataParams.nRange, storedLisaData, storedGeojson[currentData], storedCartogramData, currentData])
     
@@ -419,40 +439,52 @@ const Map = (props) => {
         return tempObj
     };
 
+    const GetHospitalValue = (f) => {
+        return dataFn(f[dataParams.numerator], f[dataParams.denominator], {...dataParams, dIndex: dataParams.nIndex})
+    }
+
     const cleanData = ( parameters ) => {
         const {data, dataName, dataType, params, bins, mapType, varID, vizType, colorScale} = parameters;
         if ((data === undefined) || (mapType !== 'lisa' && bins.breaks === undefined)) return [];
         var returnArray = [];
         let i = 0;
-        switch(vizType) {
-            case 'cartogram':
-                if (storedGeojson[currentData] === undefined) break;
-                while (i < data.length) {
-                    const tempGeoid = storedGeojson[currentData]['indexOrder'][data[i].properties?.id]
-                    const tempColor = GetSimpleFillColor(data[i].value, tempGeoid, bins.breaks, mapType);
+        if (dataName && dataName.indexOf('point') !== -1) {
+            while (i < data.length) {   
+                let tempVal = GetHospitalValue(data[i])
+                returnArray.push({
+                    GEOID: data[i].properties.fid,
+                    geom: data[i].geometry.coordinates,
+                    value: isNaN(tempVal) ? 0 : tempVal
+                })
+                i++;
+            }
+        } else if (vizType === 'cartogram'){
+            if (storedGeojson[currentData] === undefined) return;
+            while (i < data.length) {
+                const tempGeoid = storedGeojson[currentData]['indexOrder'][data[i].properties?.id]
+                const tempColor = GetSimpleFillColor(data[i].value, tempGeoid, bins.breaks, mapType);
+                returnArray.push({
+                    GEOID: tempGeoid,
+                    position: data[i].position,
+                    color: tempColor,
+                    radius: data[i].radius
+                })
+                i++;
+            }
+        } else {
+            while (i < data.length) {
+                let tempColor = GetFillColor(data[i], bins, mapType, varID);
+                let tempHeight = GetHeight(data[i]);
+                for (let n=0; n<data[i].geometry.coordinates.length; n++) {
                     returnArray.push({
-                        GEOID: tempGeoid,
-                        position: data[i].position,
+                        GEOID: data[i].properties.GEOID,
+                        geom: data[i].geometry.coordinates[n],
                         color: tempColor,
-                        radius: data[i].radius
+                        height: tempHeight
                     })
-                    i++;
                 }
-                break
-            default:
-                while (i < data.length) {
-                    let tempColor = GetFillColor(data[i], bins, mapType, varID);
-                    let tempHeight = GetHeight(data[i]);
-                    for (let n=0; n<data[i].geometry.coordinates.length; n++) {
-                        returnArray.push({
-                            GEOID: data[i].properties.GEOID,
-                            geom: data[i].geometry.coordinates[n],
-                            color: tempColor,
-                            height: tempHeight
-                        })
-                    }
-                    i++;
-                }
+                i++;
+            }
         }
         return returnArray
     }
@@ -751,12 +783,23 @@ const Map = (props) => {
                 getRadius: [storedCartogramData, mapParams.vizType]
             },
         }),
+        hospitalCluster: new IconClusterLayer({
+            id: 'hospital cluster',
+            data: currentMapData.data,
+            pickable:false,
+            // onHover: e => console.log(e),
+            getPosition: d => d.geom,
+            iconAtlas: `${process.env.PUBLIC_URL}/assets/img/capacity_atlas.png`,
+            iconMapping: ClusterAtlas,
+            sizeScale: 60,
+        })
     }
 
     const getLayers = useCallback((layers, vizType, overlays, resources, currData) => {
         var LayerArray = []
-
-        if (vizType === 'cartogram') {
+        if (currData.includes('hospital')) {
+            LayerArray.push(layers['hospitalCluster'])
+        } else if (vizType === 'cartogram') {
             LayerArray.push(layers['cartogramBackground'])
             LayerArray.push(layers['cartogram'])
             LayerArray.push(layers['cartogramText'])
@@ -905,6 +948,7 @@ const Map = (props) => {
             onKeyUp={handleKeyUp}
             onMouseDown={e => boxSelect ? handleBoxSelect(e) : null}
             onMouseUp={e => boxSelect ? handleBoxSelect(e) : null} 
+            mapboxOnTop={currentData.indexOf('point') === -1}
         >
             {
                 // boxSelectDims.hasOwnProperty('x') && 
