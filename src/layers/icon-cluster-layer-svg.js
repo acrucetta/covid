@@ -32,7 +32,7 @@ function getIconName(value, count) {
 
 const colorScale = d3.scaleLinear()
   .domain([0, 100])
-  .range(['yellow','red'])
+  .range(['blue','red'])
 
 function getIconColor(value, count) {
   const num = count === undefined ? 1 : count
@@ -41,6 +41,23 @@ function getIconColor(value, count) {
     return [0,0,0]
   } else {
     return colorScale(val).split('(')[1].split(')')[0].split(',').map(d => +d)
+  }
+}
+
+
+const svgToDataURL = (svg) => {
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
+
+const generateSVG = (points) => {
+  let dimension = Math.ceil(Math.sqrt(points.children.length))*10;
+
+  return {
+    
+    geometry: points.geometry,
+    dimension: dimension,
+    points: points.children
   }
 }
 
@@ -74,15 +91,24 @@ export default class IconClusterLayer extends CompositeLayer {
       this.setState({index});
     }
 
-
     const z = Math.floor(this.context.viewport.zoom);
+    const clusterData = this.state.index.getClusters([-180, -85, 180, 85], z)
+      .filter(d => d.id)
+      .map(d => ({
+        geometry: d.geometry,
+        children: this.state.index.getLeaves(d.id, 1000)
+      }))
+      .map(d=> generateSVG(d))
     if (rebuildIndex || z !== this.state.z) {
+
       this.setState({
-        data: this.state.index.getClusters([-180, -85, 180, 85], z),
+        data: clusterData,
+        // data: this.state.index.getClusters([-180, -85, 180, 85], z),
         z
       });
     }
   }
+
 
   getPickingInfo({info, mode}) {
     const pickedObject = info.object && info.object.properties;
@@ -97,23 +123,22 @@ export default class IconClusterLayer extends CompositeLayer {
     return info;
   }
 
-  renderLayers() {
+    renderLayers() {
     const {data} = this.state;
-    const {iconAtlas, iconMapping, sizeScale} = this.props;
 
     return new IconLayer(
-      this.getSubLayerProps({
-        id: 'icon',
+        this.getSubLayerProps({
+        id: 'icon2',
         data,
-        iconAtlas,
-        iconMapping,
-        sizeScale,
+        getIcon: d => ({
+            icon: `http://www.w3.org%2F2000%2Fsvg%22%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3Crect%20width%3D%2210%22%20height%3D%2210%22%20x%3D%220%22%20y%3D%220%22%20fill%3D'%23ff0000'%2F%3E%2C%3Crect%20width%3D%2210%22%20height%3D%2210%22%20x%3D%2210%22%20y%3D%220%22%20fill%3D'%23ff0000'%2F%3E%2C%3Crect%20width%3D%2210%22%20height%3D%2210%22%20x%3D%2220%22%20y%3D%220%22%20fill%3D'%23ff0000'%2F%3E%2C%3Crect%20width%3D%2210%22%20height%3D%2210%22%20x%3D%220%22%20y%3D%221%22%20fill%3D'%23ff0000'%2F%3E%2C%3Crect%20width%3D%2210%22%20height%3D%2210%22%20x%3D%2210%22%20y%3D%221%22%20fill%3D'%23ff0000'%2F%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3C%2Fsvg%3E`,
+            width: d.dimension,
+            height: d.dimension
+        }),
         getPosition: d => d.geometry.coordinates,
-        getIcon: d => getIconName(d.properties.value, d.properties.point_count),
-        getColor: d => [...getIconColor(d.properties.value, d.properties.point_count),200],
-        getSize: d => d.properties.point_count === undefined ? 0 : Math.log(d.properties.point_count)/8,
+        getSize: d => 20,
         sizeMinPixels: 20
-      })
+        })
     )
-  }
+    }
 }

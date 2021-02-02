@@ -21,7 +21,7 @@ import { mapFn, dataFn, getVarId, getCSV, getCartogramCenter, getDataForCharts, 
 import { colors, colorScales } from '../config';
 import MAP_STYLE from '../config/style.json';
 import { selectRect } from '../config/svg'; 
-import IconClusterLayer from '../layers/icon-cluster-layer';
+import IconClusterLayer from '../layers/icon-cluster-layer-scatter';
 import ClusterAtlas from '../layers/data/location-icon-mapping.json';
 
 // US bounds
@@ -440,7 +440,11 @@ const Map = (props) => {
     };
 
     const GetHospitalValue = (f) => {
-        return dataFn(f[dataParams.numerator], f[dataParams.denominator], {...dataParams, dIndex: dataParams.nIndex})
+        try {
+            return dataFn(f[dataParams.numerator], f[dataParams.denominator], {...dataParams, dIndex: dataParams.nIndex})
+        } catch {
+            return 0
+        }
     }
 
     const cleanData = ( parameters ) => {
@@ -562,12 +566,12 @@ const Map = (props) => {
         }
     }
 
-    const handleMapHover = ({x, y, object}) => {
+    const handleMapHover = ({x, y, object, layer}) => {
         setHoverInfo(
             {
                 x, 
                 y, 
-                object: find(storedData[currentData],o => o.properties.GEOID === object?.GEOID)
+                object: Object.keys(layer?.props).indexOf('getIcon')!==-1 ? object : find(storedData[currentData],o => o.properties.GEOID === object?.GEOID) //layer.props?.hasOwnProperty('getIcon') ? object : 
             }
         )
     }
@@ -787,11 +791,11 @@ const Map = (props) => {
             id: 'hospital cluster',
             data: currentMapData.data,
             pickable:false,
-            // onHover: e => console.log(e),
+            onHover: handleMapHover,
             getPosition: d => d.geom,
             iconAtlas: `${process.env.PUBLIC_URL}/assets/img/capacity_atlas.png`,
             iconMapping: ClusterAtlas,
-            sizeScale: 60,
+            sizeScale: 100,
         })
     }
 

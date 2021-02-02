@@ -7,8 +7,10 @@ const MapTooltipContent = (props) => {
     // destructure the object for cleaner formatting
 
     const { properties, cases, deaths, // county data
-        testing_ccpt, testing_tcap, testing_wk_pos, testing, vaccinesAdmin1, vaccinesAdmin2, vaccinesDist // state data
+        testing_ccpt, testing_tcap, testing_wk_pos, testing, vaccinesAdmin1, vaccinesAdmin2, vaccinesDist, // state data
+        cluster, value, GEOID //hospitalIcon
     } = props.content;
+
     // get lengths of time series data for reference below
     let caseN = cases && props.index;
     let deathN = deaths && props.index;
@@ -106,6 +108,17 @@ const MapTooltipContent = (props) => {
             </div>
         )
     
+    } else if (value && cluster) {
+        return (
+            <div>
+                <h3>Cluster: {props.content.point_count} Hospitals</h3>
+                <div>
+                    <hr/>
+                    Average Occupancy: {Math.round(props.content.value/props.content.point_count)}%   
+                </div>
+            </div>
+        )
+    } else if (value) {
     } else {
         return (
             <div></div>
