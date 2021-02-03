@@ -8,7 +8,7 @@ const MapTooltipContent = (props) => {
 
     const { properties, cases, deaths, // county data
         testing_ccpt, testing_tcap, testing_wk_pos, testing, vaccinesAdmin1, vaccinesAdmin2, vaccinesDist, // state data
-        cluster, value, GEOID //hospitalIcon
+        hospital_beds, hospital_beds_used, hospital_icu_beds, hospital_icu_beds_used, GEOID //hospitalIcon
     } = props.content;
 
     // get lengths of time series data for reference below
@@ -108,17 +108,19 @@ const MapTooltipContent = (props) => {
             </div>
         )
     
-    } else if (value && cluster) {
+    } else if (properties && hospital_beds) {
         return (
             <div>
-                <h3>Cluster: {props.content.point_count} Hospitals</h3>
+                <h3>{props.content.properties.address}</h3>
+                <p>{props.content.properties.city}</p>
+                {props.content.properties.hospital_subtype && <p>Hospital Type: {props.content.properties.hospital_subtype}</p>}
                 <div>
                     <hr/>
-                    Average Occupancy: {Math.round(props.content.value/props.content.point_count)}%   
+                    {/* Adult Beds: {Math.round(props.content.hospital_beds_used[caseN]/props.content.point_count)}%   
+                    ICU Beds: {Math.round(props.content.value/props.content.point_count)}%    */}
                 </div>
             </div>
         )
-    } else if (value) {
     } else {
         return (
             <div></div>

@@ -123,6 +123,18 @@ export const colorScales = {
         [35,139,69],
         [0,90,50],
       ],
+      'hospital-utilization': [
+        [147, 185, 212],
+        [159, 165, 188],
+        [171, 144, 165],
+        [183, 124, 141],
+        [195, 103, 118],
+        [207, 82, 94],
+        [219, 62, 71],
+        [231, 41, 47],
+        [243, 21, 24],
+        [255,0,0]
+      ]
 }
 
 export const fixedScales = {
@@ -142,8 +154,8 @@ export const fixedScales = {
         breaks:[1,2,3,4]
     },
     'hospital-utilization':{
-      bins: ['0%', '25%','50%','75%','100%'],
-      breaks:[0,25,50,75,100]
+      bins: ['10%','20%','30%','40%','50%','60%','70%','80%','90%'],
+      breaks:[10,20,30,40,50,60,70,80,90]
     }
 }
 
@@ -685,11 +697,11 @@ export const variablePresets = {
       dIndex:null,
       scale:100,
       scale3D: 10000000,
-      colorScale: null,
-      fixedScale:null
+      colorScale: 'hospital-utilization',
+      fixedScale:'hospital-utilization'
     },
     "ICU Bed Utilization": {
-      variableName:"Staffed ICU Bed Utilization",
+      variableName:"ICU Bed Utilization",
       numerator: 'hospital_icu_beds_used',
       nType: 'time-series',
       nProperty: null,
@@ -699,8 +711,8 @@ export const variablePresets = {
       dIndex:null,
       scale:100,
       scale3D: 10000000,
-      colorScale: null,
-      fixedScale:null
+      colorScale: 'hospital-utilization',
+      fixedScale:'hospital-utilization'
     },
 }
   

@@ -33,7 +33,7 @@ function getIconName(value, count) {
 
 const colorScale = d3.scaleLinear()
   .domain([0, 100])
-  .range(['blue','red'])
+  .range(['SkyBlue','red'])
 
 function getIconColor(value) {
   if (isNaN(value)) {
@@ -43,31 +43,38 @@ function getIconColor(value) {
   }
 }
 
-
 const svgToDataURL = (svg) => {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
 
 const generatePoints = (points, zoom) => {
-    let dimension = Math.ceil(Math.sqrt(points.children.length));
-    let center = points.geometry.coordinates;
-    let dist = (1/(2**(zoom/1.8)))*100;
+    const dimension = Math.ceil(Math.sqrt(points.children.length));
+    const center = points.geometry.coordinates;
+    const dist = (1/(2**(zoom/1.8)))*150;
 
-    let yStep = (360/40075)*dist;
-    let xStep = (360/40075)*dist;
+    const yStep = (360/40075)*dist;
+    const xStep = (360/40075)*dist;
 
-    let offsetX = dimension % 2 === 0 ? (dimension-1)*xStep/2 : (Math.floor(dimension/2))*xStep
-    let offsetY = dimension % 2 === 0 ? (dimension-1)*yStep/2 : (Math.floor(dimension/2))*yStep
+    const offsetX = dimension % 2 === 0 ? (dimension-1)*xStep/2 : (Math.floor(dimension/2))*xStep
+    const offsetY = dimension % 2 === 0 ? (dimension-1)*yStep/2 : (Math.floor(dimension/2))*yStep
 
-    let cleanPoint = sortBy(points.children, d => d.properties.value)
-    return cleanPoint.map((data, idx) => ({
+    const cleanPoint = zoom <= 6 ? sortBy(points.children, d => d.properties.value) : points.children
+    return zoom > 11 ? 
+        cleanPoint.map((data, idx) => ({
+          coords: data.geometry.coordinates,
+          radius: data.properties.scale,
+          color: getIconColor(data.properties.value),
+          GEOID: data.properties.GEOID
+      }))
+      : cleanPoint.map((data, idx) => ({
         coords: [
             center[0]+(xStep*(idx%dimension))-offsetX,
             center[1]-(yStep*(Math.floor(idx/dimension)))+offsetY
         ],
-        radius: 1,
-        color: getIconColor(data.properties.value)
+        radius: data.properties.scale,
+        color: getIconColor(data.properties.value),
+        GEOID: data.properties.GEOID
     }))
 }
 
@@ -82,10 +89,8 @@ export default class IconClusterLayer extends CompositeLayer {
     if (rebuildIndex) {
       const index = new Supercluster(
         {
-          maxZoom: 20, 
-          radius: props.sizeScale/(z*0.8),
-          map: (props) => ({value: props.value}),
-          reduce: (accumulated, props) => { accumulated.value += props.value; }
+          maxZoom: 30, 
+          radius: props.sizeScale/(z*0.5)
         }
       );
       
@@ -127,7 +132,7 @@ export default class IconClusterLayer extends CompositeLayer {
       if (pickedObject.cluster && mode !== 'hover') {
         info.objects = this.state.index
           .getLeaves(pickedObject.cluster_id, 25)
-          .map(f => f.properties);
+          .map(f => f);
       }
       info.object = pickedObject;
     }
@@ -136,22 +141,24 @@ export default class IconClusterLayer extends CompositeLayer {
 
     renderLayers() {
         const {data, z} = this.state;
-
+        const {onHover} = this.props;
+        
         return new ScatterplotLayer(
             this.getSubLayerProps({
-            id: 'test scatterplot',
-            data,
-            opacity: 0.8,
-            stroked: true,
-            filled: true,
-            radiusScale: z**1.7,
-            radiusMinPixels: 3,
-            radiusMaxPixels: 100,
-            lineWidthMinPixels: 1,
-            getPosition: d => d.coords,
-            getRadius: d => d.radius*20,
-            getFillColor: d => d.color,
-            getLineColor: d => [0, 0, 0],
+              id: 'scatterplot grid',
+              data,
+              onHover,
+              opacity: 0.8,
+              stroked: false,
+              filled: true,
+              radiusScale: (24-(z**(2*z/24)))*(24/z),
+              radiusUnits:'meters',
+              radiusMinPixels: 2,
+              lineWidthMinPixels: 1,
+              getPosition: d => d.coords,
+              getRadius: d => Math.sqrt(d.radius),
+              getFillColor: d => d.color,
+              getLineColor: d => [15,15,15,200],
             })
         )
     }

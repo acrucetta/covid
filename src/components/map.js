@@ -11,7 +11,7 @@ import {MapView, FlyToInterpolator} from '@deck.gl/core';
 import { PolygonLayer, ScatterplotLayer, IconLayer, TextLayer } from '@deck.gl/layers';
 import {fitBounds} from '@math.gl/web-mercator';
 
-import MapboxGLMap, {NavigationControl, GeolocateControl } from 'react-map-gl';
+import MapboxGLMap from 'react-map-gl';
 import Geocoder from 'react-map-gl-geocoder';
 
 // component, action, util, and config import
@@ -20,9 +20,12 @@ import { setMapLoaded, setSelectionData, appendSelectionData, removeSelectionDat
 import { mapFn, dataFn, getVarId, getCSV, getCartogramCenter, getDataForCharts, getURLParams } from '../utils';
 import { colors, colorScales } from '../config';
 import MAP_STYLE from '../config/style.json';
-import { selectRect } from '../config/svg'; 
-import IconClusterLayer from '../layers/icon-cluster-layer-scatter';
+import { selectRect, locate, plus, minus, compass } from '../config/svg'; 
+import PointGridLayer from '../layers/point-grid-layer';
 import ClusterAtlas from '../layers/data/location-icon-mapping.json';
+
+import TextField from '@material-ui/core/TextField';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 
 // US bounds
 const bounds = fitBounds({
@@ -76,6 +79,11 @@ const MapContainer = styled.div`
     div#view-MapView {
         z-index:${props => props.mapboxOnTop ? 500 : 'initial'};
     }
+    // canvas#deckgl-overlay {
+    //     // opacity: ${props => props.mapboxOnTop ? 1 : 0};
+    //     pointer-events:none !important;
+    // }
+
 `
 
 const HoverDiv = styled.div`
@@ -87,26 +95,28 @@ const HoverDiv = styled.div`
     h3 {
         margin:2px 0;
     }
-`;
+`
+
+const NavInlineButtonGroup = styled.div`
+    margin-bottom:10px;
+    border-radius:4px;
+    overflow:hidden;
+    -moz-box-shadow: 0 0 2px rgba(0,0,0,.1);
+    -webkit-box-shadow: 0 0 2px rgba(0,0,0,.1);
+    box-shadow: 0 0 0 2px rgba(0,0,0,.1);
+`
 
 const NavInlineButton = styled.button`
     width:29px;
     height:29px;
     padding:5px;
-    margin-bottom:10px;
     display:block;
+    fill:rgb(60,60,60);
     background-color: ${props => props.isActive ? colors.lightblue : colors.buttongray};
-    -moz-box-shadow: 0 0 2px rgba(0,0,0,.1);
-    -webkit-box-shadow: 0 0 2px rgba(0,0,0,.1);
-    box-shadow: 0 0 0 2px rgba(0,0,0,.1);
-    border-radius: 4px;
     outline:none;
     border:none;
     transition:250ms all;
     cursor:pointer;
-    &:last-of-type {
-        margin-top:10px;
-    }
     :after {
         opacity: ${props => props.shareNotification ? 1 : 0};
         content:'Map Link Copied to Clipboard!';
@@ -122,6 +132,10 @@ const NavInlineButton = styled.button`
         pointer-events:none;
         max-width:50vw;
         transition:250ms all;
+    }
+    svg {
+        transition:250ms all;
+        transform:${props => props.tilted ? 'rotate(30deg)' : 'none' };
     }
 `
 
@@ -339,9 +353,19 @@ const Map = (props) => {
                 }
             });
         }
+
+        if (currentData.includes('point')) {
+            tempLayers = tempLayers.map(layer => {
+                if (layer.get('id').includes('label') && !(layer.get('id').includes('water'))) {
+                    return layer.setIn(['paint', 'text-color'], 'rgb(180,180,180)').setIn(['paint', 'text-halo-width'], 0)
+                } else {
+                    return layer;
+                }
+            })
+        }
         setMapStyle(defaultMapStyle.set('layers', tempLayers));
 
-    }, [mapParams.overlay, mapParams.mapType, mapParams.vizType])
+    }, [mapParams.overlay, mapParams.mapType, mapParams.vizType, currentData])
 
     // load in Hospital and clinic data when called
     useEffect(() => {
@@ -458,7 +482,8 @@ const Map = (props) => {
                 returnArray.push({
                     GEOID: data[i].properties.fid,
                     geom: data[i].geometry.coordinates,
-                    value: isNaN(tempVal) ? 0 : tempVal
+                    value: isNaN(tempVal) ? 0 : tempVal,
+                    scale: data[i][dataParams.denominator][dataParams.nIndex]-data[i][dataParams.denominator][dataParams.nIndex-dataParams.nRange]
                 })
                 i++;
             }
@@ -500,17 +525,6 @@ const Map = (props) => {
         // } else {
         //     return dataFn(f[dataParams.zAxisParams.numerator], f[dataParams.zAxisParams.denominator], dataParams.zAxisParams)*(dataParams.zAxisParams.scale3D)
         // }
-
-    const handleGeolocate = (viewState) => {
-        setViewState(view => ({
-            ...view,
-            latitude: viewState.coords.latitude,
-            longitude: viewState.coords.longitude,
-            zoom: 8,
-            transitionInterpolator: new FlyToInterpolator(),
-            transitionDuration: 250,
-        }))
-    }
 
     const handleGeocoder = (viewState) => {
         setViewState(view => ({
@@ -571,7 +585,11 @@ const Map = (props) => {
             {
                 x, 
                 y, 
-                object: Object.keys(layer?.props).indexOf('getIcon')!==-1 ? object : find(storedData[currentData],o => o.properties.GEOID === object?.GEOID) //layer.props?.hasOwnProperty('getIcon') ? object : 
+                object: 
+                    layer.id === 'hospital-layer' || layer.id === 'clinics-layer' ? 
+                        object 
+                    : 
+                        find(storedData[currentData], o => o.properties.GEOID === object?.GEOID)
             }
         )
     }
@@ -637,6 +655,47 @@ const Map = (props) => {
                 window.localStorage.setItem('SHARED_VIEW', JSON.stringify(mapRef.current.props.viewState));
             } catch {}
         }
+    }
+
+    
+    const handleGeolocate = async () => {
+        navigator.geolocation.getCurrentPosition( position => {
+            setViewState(
+                prevView => ({
+                    ...prevView,
+                    longitude: position.coords.longitude,
+                    latitude: position.coords.latitude,
+                    zoom:7,
+                    transitionDuration: 1000,
+                    transitionInterpolator: new FlyToInterpolator()
+                })
+            )  
+        }) 
+    }
+
+    const handleZoom = (zoom) => {
+        setViewState(
+            prevView => ({
+                ...prevView,
+                ...mapRef.current.props.viewState,
+                zoom: prevView.zoom + zoom,
+                transitionDuration: 250,
+                transitionInterpolator: new FlyToInterpolator()
+            })
+        )  
+    }
+    const resetTilt = () => {
+        setViewState(
+            prevView => ({
+                ...prevView,
+                ...mapRef.current.props.viewState,
+                bearing:0,
+                pitch:0,
+                transitionDuration: 250,
+                transitionInterpolator: new FlyToInterpolator()
+            })
+        )  
+
     }
 
     const FullLayers = {
@@ -787,7 +846,7 @@ const Map = (props) => {
                 getRadius: [storedCartogramData, mapParams.vizType]
             },
         }),
-        hospitalCluster: new IconClusterLayer({
+        hospitalCluster: new PointGridLayer({
             id: 'hospital cluster',
             data: currentMapData.data,
             pickable:false,
@@ -798,7 +857,6 @@ const Map = (props) => {
             sizeScale: 100,
         })
     }
-
     const getLayers = useCallback((layers, vizType, overlays, resources, currData) => {
         var LayerArray = []
         if (currData.includes('hospital')) {
@@ -1010,8 +1068,11 @@ const Map = (props) => {
                         style={{position: 'fixed', top:'5px', right:'5px'}}
                         countries={"US"}
                     />
-                        
-                    <MapButtonContainer 
+                </MapboxGLMap >
+                
+                {/* <View id="main" className="test" style={{display:'none'}}/> */}
+            </DeckGL>
+            <MapButtonContainer 
                         infoPanel={panelState.info}
                         onMouseEnter={() => {
                             setHoverInfo({x:null, y:null, object:null})
@@ -1019,44 +1080,67 @@ const Map = (props) => {
                         }
                         onMouseLeave={() => setChoroplethInteractive(true)}
                         >
-                        <NavInlineButton
-                            title="Selection Box"
-                            id="boxSelect"
-                            isActive={boxSelect}
-                            onClick={() => handleSelectionBoxStart()}
-                        >
-                            {selectRect}
-                        </NavInlineButton>
-                        <GeolocateControl
-                            positionOptions={{enableHighAccuracy: false}}
-                            trackUserLocation={false}
-                            onGeolocate={viewState  => handleGeolocate(viewState)}
-                            style={{marginBottom: 10}}
-                        />
-                        <NavigationControl
-                            onViewportChange={viewState  => setViewState(viewState)} 
-                        />
+                        <NavInlineButtonGroup>
+                            <NavInlineButton
+                                title="Selection Box"
+                                id="boxSelect"
+                                isActive={boxSelect}
+                                onClick={() => handleSelectionBoxStart()}
+                            >
+                                {selectRect}
+                            </NavInlineButton>
+                        </NavInlineButtonGroup>
+                        <NavInlineButtonGroup>
+                            <NavInlineButton
+                                title="Geolocate"
+                                id="geolocate"
+                                onClick={() => handleGeolocate()}
+                            >
+                                {locate}
+                            </NavInlineButton>
+                        </NavInlineButtonGroup>
                         
-                        <NavInlineButton
-                            title="Share this Map"
-                            id="shareButton"
-                            shareNotification={shared}
-                            onClick={() => handleShare({mapParams, dataParams, currentData, coords: mapRef.current.props.viewState, lastDateIndex: dateIndices[currentData][dataParams.numerator]})}
-                        >
-                            <svg x="0px" y="0px" viewBox="0 0 100 100">
-                                <path d="M22.5,65c4.043,0,7.706-1.607,10.403-4.208l29.722,14.861C62.551,76.259,62.5,76.873,62.5,77.5c0,8.284,6.716,15,15,15   s15-6.716,15-15c0-8.284-6.716-15-15-15c-4.043,0-7.706,1.608-10.403,4.209L37.375,51.847C37.449,51.241,37.5,50.627,37.5,50   c0-0.627-0.051-1.241-0.125-1.847l29.722-14.861c2.698,2.601,6.36,4.209,10.403,4.209c8.284,0,15-6.716,15-15   c0-8.284-6.716-15-15-15s-15,6.716-15,15c0,0.627,0.051,1.241,0.125,1.848L32.903,39.208C30.206,36.607,26.543,35,22.5,35   c-8.284,0-15,6.716-15,15C7.5,58.284,14.216,65,22.5,65z">
-                                </path>
-                            </svg>
+                        <NavInlineButtonGroup>
+                            <NavInlineButton
+                            
+                                title="Zoom In"
+                                id="zoomIn"
+                                onClick={() => handleZoom(1)}
+                            >
+                                {plus}
+                            </NavInlineButton>
+                            <NavInlineButton
+                                title="Zoom Out"
+                                id="zoomOut"
+                                onClick={() => handleZoom(-1)}
+                            >
+                                {minus}
+                            </NavInlineButton>
+                            <NavInlineButton
+                                title="Reset Tilt"
+                                id="resetTilt"
+                                tilted={mapRef?.current?.props?.viewState.bearing !== 0 || mapRef?.current?.props?.viewState.pitch !== 0}
+                                onClick={() => resetTilt()}
+                            >
+                                {compass}
+                            </NavInlineButton>
+                        </NavInlineButtonGroup>
+                        <NavInlineButtonGroup>
+                            <NavInlineButton
+                                title="Share this Map"
+                                id="shareButton"
+                                shareNotification={shared}
+                                onClick={() => handleShare({mapParams, dataParams, currentData, coords: mapRef.current.props.viewState, lastDateIndex: dateIndices[currentData][dataParams.numerator]})}
+                            >
+                                <svg x="0px" y="0px" viewBox="0 0 100 100">
+                                    <path d="M22.5,65c4.043,0,7.706-1.607,10.403-4.208l29.722,14.861C62.551,76.259,62.5,76.873,62.5,77.5c0,8.284,6.716,15,15,15   s15-6.716,15-15c0-8.284-6.716-15-15-15c-4.043,0-7.706,1.608-10.403,4.209L37.375,51.847C37.449,51.241,37.5,50.627,37.5,50   c0-0.627-0.051-1.241-0.125-1.847l29.722-14.861c2.698,2.601,6.36,4.209,10.403,4.209c8.284,0,15-6.716,15-15   c0-8.284-6.716-15-15-15s-15,6.716-15,15c0,0.627,0.051,1.241,0.125,1.848L32.903,39.208C30.206,36.607,26.543,35,22.5,35   c-8.284,0-15,6.716-15,15C7.5,58.284,14.216,65,22.5,65z">
+                                    </path>
+                                </svg>
 
-                        </NavInlineButton>
-
+                            </NavInlineButton>
+                        </NavInlineButtonGroup>
                         <ShareURL type="text" value="" id="share-url" />
                     </MapButtonContainer>
-                    <div></div>
-                </MapboxGLMap >
-                
-                {/* <View id="main" className="test" style={{display:'none'}}/> */}
-            </DeckGL>
             
             {hoverInfo.object && (
                 <HoverDiv style={{position: 'absolute', zIndex: 1, pointerEvents: 'none', left: hoverInfo.x, top: hoverInfo.y}}>
