@@ -173,15 +173,15 @@ const IndicatorBox = styled.div`
 `
 
 
-const colorScale = d3.scaleLinear()
-  .domain([0, 100])
-  .range(['SkyBlue','red'])
+const hospitalColorscale = d3.scaleLinear()
+  .domain([0, 100, 10e6])
+  .range(['SkyBlue','red', 'red'])
 
 function getIconColor(value) {
   if (isNaN(value)) {
     return [0,0,0]
   } else {
-    return colorScale(value).split('(')[1].split(')')[0].split(',').map(d => +d)
+    return hospitalColorscale(value).split('(')[1].split(')')[0].split(',').map(d => +d)
   }
 }
 
@@ -478,13 +478,9 @@ const Map = (props) => {
         return tempObj
     };
 
-    const GetHospitalValue = (f) => {
-        try {
-            return dataFn(f[dataParams.numerator], f[dataParams.denominator], {...dataParams, dIndex: dataParams.nIndex})
-        } catch {
-            return 0
-        }
-    }
+    const GetHospitalValue = (f) => f[dataParams.denominator] === undefined ? 0 : dataFn(f[dataParams.numerator], f[dataParams.denominator], {...dataParams, dIndex: dataParams.nIndex})
+
+    const GetHospitalScale = (f) => f[dataParams.denominator] === undefined ? 0 : f[dataParams.denominator][dataParams.nIndex]-f[dataParams.denominator][dataParams.nIndex-dataParams.nRange]
 
     const cleanData = ( parameters ) => {
         const {data, dataName, dataType, params, bins, mapType, varID, vizType, colorScale} = parameters;
@@ -498,7 +494,7 @@ const Map = (props) => {
                     GEOID: data[i].properties.fid,
                     geom: data[i].geometry.coordinates,
                     value: isNaN(tempVal) ? 0 : tempVal,
-                    scale: data[i][dataParams.denominator][dataParams.nIndex]-data[i][dataParams.denominator][dataParams.nIndex-dataParams.nRange]
+                    scale: GetHospitalScale(data[i])
                 })
                 i++;
             }
@@ -883,7 +879,7 @@ const Map = (props) => {
             radiusMinPixels: 1,
             radiusMaxPixels: 100,
             lineWidthMinPixels: 1,
-            onHover: info => console.log(info.object?.GEOID),
+            onHover: object => find(storedData[currentData], o => o.properties.fid === object?.GEOID),
             getRadius: d => Math.sqrt(d.scale),
             getFillColor: d => [...getIconColor(d.value), 200],
             getLineColor: d => [0, 0, 0]
