@@ -601,10 +601,14 @@ const Map = (props) => {
                 x, 
                 y, 
                 object: 
-                    layer.id === 'hospital-layer' || layer.id === 'clinics-layer' ? 
-                        object 
-                    : 
+                    layer.id === 'choropleth' ? 
                         find(storedData[currentData], o => o.properties.GEOID === object?.GEOID)
+                    :
+                    layer.id === 'hospital cluster' || layer.id === 'hospital point layer' ?
+                        find(storedData[currentData], o => o.properties.fid === object?.GEOID)
+                    : 
+                    object
+                        
             }
         )
     }
@@ -864,7 +868,7 @@ const Map = (props) => {
         hospitalCluster: mapParams.clustered ? new PointGridLayer({
             id: 'hospital cluster',
             data: currentMapData.data,
-            pickable:false,
+            pickable:true,
             onHover: handleMapHover,
             getPosition: d => d.geom,
             iconAtlas: `${process.env.PUBLIC_URL}/assets/img/capacity_atlas.png`,
@@ -873,12 +877,13 @@ const Map = (props) => {
         }) : new ScatterplotLayer({
             id: 'hospital point layer',
             data: currentMapData.data,
-            pickable:false,
+            pickable:true,
             getPosition: d => d.geom,
             radiusScale: (1/mapRef.current.props.viewState.zoom)*2000,
             radiusMinPixels: 1,
             radiusMaxPixels: 100,
             lineWidthMinPixels: 1,
+            onHover: info => console.log(info.object?.GEOID),
             getRadius: d => Math.sqrt(d.scale),
             getFillColor: d => [...getIconColor(d.value), 200],
             getLineColor: d => [0, 0, 0]

@@ -116,8 +116,27 @@ const MapTooltipContent = (props) => {
                 {props.content.properties.hospital_subtype && <p>Hospital Type: {props.content.properties.hospital_subtype}</p>}
                 <div>
                     <hr/>
-                    {/* Adult Beds: {Math.round(props.content.hospital_beds_used[caseN]/props.content.point_count)}%   
-                    ICU Beds: {Math.round(props.content.value/props.content.point_count)}%    */}
+                    
+                    {props.content.hospital_beds[caseN] - props.content.hospital_beds[caseN-7] > 0 && 
+                        <span>
+                            Adult Beds: {Math.round(props.content.hospital_beds_used[caseN]-props.content.hospital_beds_used[caseN-7])} / {Math.round(props.content.hospital_beds[caseN]-props.content.hospital_beds[caseN-7])}
+                            <br/>
+                            {Math.round(
+                                ((props.content.hospital_beds_used[caseN]-props.content.hospital_beds_used[caseN-7])/(props.content.hospital_beds[caseN]-props.content.hospital_beds[caseN-7])*100)
+                            )}% utilized
+                            <br/>
+                            <br/>
+                        </span>
+                    }
+                    {props.content.hospital_icu_beds[caseN] - props.content.hospital_icu_beds[caseN-7] > 0 && 
+                        <span>
+                                ICU Beds: {Math.round(props.content.hospital_icu_beds_used[caseN]-props.content.hospital_icu_beds_used[caseN-7])} / {Math.round(props.content.hospital_icu_beds[caseN]-props.content.hospital_icu_beds[caseN-7])}
+                                <br/>
+                                {Math.round(
+                                    ((props.content.hospital_icu_beds_used[caseN]-props.content.hospital_icu_beds_used[caseN-7])/(props.content.hospital_icu_beds[caseN]-props.content.hospital_icu_beds[caseN-7])*100)
+                                )}% utilized
+                        </span>
+                    }
                 </div>
             </div>
         )
