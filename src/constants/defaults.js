@@ -65,6 +65,7 @@ export const INITIAL_STATE = {
       [227,26,28],
       [177,0,38],
     ],
+    clustered:true
   },
   panelState: {
     variables:true,

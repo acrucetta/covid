@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import styled from 'styled-components';
 import {fromJS} from 'immutable';
 import { find, findIndex } from 'lodash';
+import * as d3 from 'd3-scale';
 
 // deck GL and helper function import
 import DeckGL from '@deck.gl/react';
@@ -170,6 +171,20 @@ const IndicatorBox = styled.div`
     background:rgba(0,0,0,0.25);
     z-index:5;
 `
+
+
+const colorScale = d3.scaleLinear()
+  .domain([0, 100])
+  .range(['SkyBlue','red'])
+
+function getIconColor(value) {
+  if (isNaN(value)) {
+    return [0,0,0]
+  } else {
+    return colorScale(value).split('(')[1].split(')')[0].split(',').map(d => +d)
+  }
+}
+
 
 const Map = (props) => { 
     // fetch pieces of state from store    
@@ -846,7 +861,7 @@ const Map = (props) => {
                 getRadius: [storedCartogramData, mapParams.vizType]
             },
         }),
-        hospitalCluster: new PointGridLayer({
+        hospitalCluster: mapParams.clustered ? new PointGridLayer({
             id: 'hospital cluster',
             data: currentMapData.data,
             pickable:false,
@@ -855,6 +870,19 @@ const Map = (props) => {
             iconAtlas: `${process.env.PUBLIC_URL}/assets/img/capacity_atlas.png`,
             iconMapping: ClusterAtlas,
             sizeScale: 100,
+        }) : new ScatterplotLayer({
+            id: 'hospital point layer',
+            data: currentMapData.data,
+            pickable:false,
+            getPosition: d => d.geom,
+            radiusScale: (1/mapRef.current.props.viewState.zoom)*2000,
+            radiusMinPixels: 1,
+            radiusMaxPixels: 100,
+            lineWidthMinPixels: 1,
+            getRadius: d => Math.sqrt(d.scale),
+            getFillColor: d => [...getIconColor(d.value), 200],
+            getLineColor: d => [0, 0, 0]
+
         })
     }
     const getLayers = useCallback((layers, vizType, overlays, resources, currData) => {

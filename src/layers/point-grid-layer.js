@@ -64,7 +64,7 @@ const generatePoints = (points, zoom) => {
         cleanPoint.map((data, idx) => ({
           coords: data.geometry.coordinates,
           radius: data.properties.scale,
-          color: getIconColor(data.properties.value),
+          value: data.properties.value,
           GEOID: data.properties.GEOID
       }))
       : cleanPoint.map((data, idx) => ({
@@ -73,7 +73,7 @@ const generatePoints = (points, zoom) => {
             center[1]-(yStep*(Math.floor(idx/dimension)))+offsetY
         ],
         radius: data.properties.scale,
-        color: getIconColor(data.properties.value),
+        value: data.properties.value,
         GEOID: data.properties.GEOID
     }))
 }
@@ -157,7 +157,7 @@ export default class PointGridLayer extends CompositeLayer {
               lineWidthMinPixels: 1,
               getPosition: d => d.coords,
               getRadius: d => Math.sqrt(d.radius),
-              getFillColor: d => d.color,
+              getFillColor: d => getIconColor(d.value),
               getLineColor: d => [15,15,15,200],
             })
         )

@@ -11,6 +11,7 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import Button from '@material-ui/core/Button';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Switch from '@material-ui/core/Switch';
+import Checkbox from '@material-ui/core/Checkbox';
 
 import styled from 'styled-components';
 
@@ -204,6 +205,16 @@ const ControlsContainer = styled.div`
 const ListSubheader = styled(MenuItem)`
   font-variant: small-caps;
   font-weight:800;
+`
+
+const ClusterControl = styled(FormControlLabel)`
+  display:block;
+  margin: -30px 0 20px 0;
+  .MuiCheckbox-colorPrimary.Mui-checked, .MuiSvgIcon-root, .MuiTypography-body1  {
+    font: 'Lato', sans-serif;
+    color:white;
+  }
+  
 `
 
 const VariablePanel = (props) => {
@@ -646,74 +657,6 @@ const VariablePanel = (props) => {
   //     dispatch(setCurrentData(newDataSet)); 
   //   }
   // };
-
-
-  const handleMapType = (event, newValue) => {
-    let nBins = newValue === 'hinge15_breaks' ? 6 : 8
-    if (newValue === 'lisa') {
-      dispatch(
-        setMapParams(
-          {
-            mapType: newValue,
-            nBins: 4,
-            bins: fixedScales[newValue],
-            colorScale: colorScales[newValue]
-            
-          }
-        )
-      )
-    } else {
-      dispatch(
-        setMapParams(
-          {
-            nBins,
-            mapType: newValue,
-            binMode: newValue === 'hinge15_breaks' ? 'dynamic' : ''
-          }
-        )
-      )
-    }
-  }
-
-  const handleMapOverlay = (event) =>{
-    dispatch(
-      setMapParams(
-        {
-          overlay: event.target.value
-        }
-      )
-    )
-  }
-
-  const handleMapResource = (event) =>{
-    dispatch(
-      setMapParams(
-        {
-          resource: event.target.value
-        }
-      )
-    )
-  }
-
-  const handleOpenClose = () => {
-    if (panelState.variables) {
-      dispatch(setPanelState({variables:false}))
-    } else {
-      dispatch(setPanelState({variables:true}))
-    }
-  }
-
-  const handleVizTypeButton = (vizType) => {
-    setBivariateZ(false)
-    if (mapParams.vizType !== vizType) {
-      dispatch(setMapParams({vizType}))
-    }
-  }
-
-  // const handleZSwitch = () => {
-  //   setBivariateZ(prev => !prev )
-  // }
-  
   
   const datasetTree = {
     'County': {
@@ -796,6 +739,72 @@ const VariablePanel = (props) => {
   }, [urlParams])
   
 
+  const handleMapType = (event, newValue) => {
+    let nBins = newValue === 'hinge15_breaks' ? 6 : 8
+    if (newValue === 'lisa') {
+      dispatch(
+        setMapParams(
+          {
+            mapType: newValue,
+            nBins: 4,
+            bins: fixedScales[newValue],
+            colorScale: colorScales[newValue]
+            
+          }
+        )
+      )
+    } else {
+      dispatch(
+        setMapParams(
+          {
+            nBins,
+            mapType: newValue,
+            binMode: newValue === 'hinge15_breaks' ? 'dynamic' : ''
+          }
+        )
+      )
+    }
+  }
+
+  const handleMapOverlay = (event) =>{
+    dispatch(
+      setMapParams(
+        {
+          overlay: event.target.value
+        }
+      )
+    )
+  }
+
+  const handleMapResource = (event) =>{
+    dispatch(
+      setMapParams(
+        {
+          resource: event.target.value
+        }
+      )
+    )
+  }
+
+  const handleOpenClose = () => {
+    if (panelState.variables) {
+      dispatch(setPanelState({variables:false}))
+    } else {
+      dispatch(setPanelState({variables:true}))
+    }
+  }
+
+  const handleVizTypeButton = (vizType) => {
+    setBivariateZ(false)
+    if (mapParams.vizType !== vizType) {
+      dispatch(setMapParams({vizType}))
+    }
+  }
+
+  // const handleZSwitch = () => {
+  //   setBivariateZ(prev => !prev )
+  // }
+  
   const handleNewVariable = (e) => {
     let tempGeography = currentGeography;
     let tempDataset = currentDataset;
@@ -858,6 +867,12 @@ const VariablePanel = (props) => {
     dispatch(setCurrentData(datasetTree[currentGeography][e.target.value]))
   }
 
+  const handleClusterControl = (e, newValue) => {
+    dispatch(setMapParams({
+      clustered:newValue
+    }))
+  }
+
   
   const handleRangeButton = (event) => {
     let val = event.target.value;
@@ -909,6 +924,18 @@ const VariablePanel = (props) => {
           }
           </Select>
         </StyledDropDown>
+        {currentGeography === 'Point' && <br/>}
+        {currentGeography === 'Point' && <ClusterControl
+          control={
+            <Checkbox
+              checked={mapParams.clustered}
+              onChange={handleClusterControl}
+              name="point Cluster"
+              color="primary"
+            />
+          }
+          label="Cluster Points"
+        />}
         <br/>
         <DateSelectorContainer disabled={dataParams.nType === "characteristic"}>
           <StyledDropDown id="dateSelector">
