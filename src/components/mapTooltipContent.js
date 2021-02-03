@@ -1,6 +1,13 @@
 import React from 'react';
 
-
+const toTitleCase = (str) => {
+    return str.replace(
+      /\w\S*/g,
+      function(txt) {
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+      }
+    );
+  }
 // This component handles and formats the map tooltip info. 
 // The props passed to this component should contain an object of the hovered object (from deck, info.object by default)
 const MapTooltipContent = (props) => {
@@ -111,9 +118,8 @@ const MapTooltipContent = (props) => {
     } else if (properties && hospital_beds) {
         return (
             <div>
-                <h3>{props.content.properties.address}</h3>
-                <p>{props.content.properties.city}</p>
-                {props.content.properties.hospital_subtype && <p>Hospital Type: {props.content.properties.hospital_subtype}</p>}
+                <h3>{toTitleCase(props.content.properties.hospital_name)}</h3>
+                <p>{toTitleCase(props.content.properties.city)}</p>
                 <div>
                     <hr/>
                     

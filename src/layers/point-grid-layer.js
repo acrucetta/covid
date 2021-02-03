@@ -31,15 +31,15 @@ function getIconName(value, count) {
   return isNaN(val) ? '' : `${val}`;
 }
 
-const colorScale = d3.scaleLinear()
-  .domain([0, 100])
-  .range(['SkyBlue','red'])
+const hospitalColorscale = d3.scaleLinear()
+  .domain([0, 100, 10e6])
+  .range(['SkyBlue','red', 'red'])
 
 function getIconColor(value) {
   if (isNaN(value)) {
     return [0,0,0]
   } else {
-    return colorScale(value).split('(')[1].split(')')[0].split(',').map(d => +d)
+    return hospitalColorscale(value).split('(')[1].split(')')[0].split(',').map(d => +d)
   }
 }
 
