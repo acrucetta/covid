@@ -879,7 +879,7 @@ const Map = (props) => {
             radiusMinPixels: 1,
             radiusMaxPixels: 100,
             lineWidthMinPixels: 1,
-            onHover: object => find(storedData[currentData], o => o.properties.fid === object?.GEOID),
+            onHover: handleMapHover,
             getRadius: d => Math.sqrt(d.scale),
             getFillColor: d => [...getIconColor(d.value), 200],
             getLineColor: d => [0, 0, 0]
