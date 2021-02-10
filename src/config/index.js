@@ -199,7 +199,8 @@ export const dataPresets = {
             'berkeley_predictions',
             'chr_health_context',
             'chr_life',
-            'chr_health_factors'
+            'chr_health_factors',
+            'essential_workers'
         ], 
         tableNames: [ // table names in order of CSVs
             'cases',
@@ -207,7 +208,8 @@ export const dataPresets = {
             'predictions',
             'chr_health_context',
             'chr_life',
-            'chr_health_factors'
+            'chr_health_factors',
+            'essential_workers'
         ],
         joinCols: ['GEOID', ['FIPS','fips','countyFIPS']], // geospatial data join column and then list of valid table join columns
         accumulate: [], // CSV names to accumulate over time
@@ -225,7 +227,8 @@ export const dataPresets = {
             'berkeley_predictions',
             'chr_health_context',
             'chr_life',
-            'chr_health_factors'
+            'chr_health_factors',
+            'essential_workers'
         ], 
         tableNames: [
             'cases',
@@ -233,7 +236,8 @@ export const dataPresets = {
             'predictions', 
             'chr_health_context', 
             'chr_life', 
-            'chr_health_factors'
+            'chr_health_factors',
+            'essential_workers'
         ],
         joinCols: ['GEOID', ['FIPS','fips','countyFIPS', 'GEOID']], 
         accumulate: ['covid_confirmed_1p3a','covid_deaths_1p3a'],
@@ -251,7 +255,8 @@ export const dataPresets = {
             'berkeley_predictions', 
             'chr_health_context', 
             'chr_life', 
-            'chr_health_factors'
+            'chr_health_factors',
+            'essential_workers'
         ],  
         tableNames: [
             'cases', 
@@ -259,7 +264,8 @@ export const dataPresets = {
             'predictions', 
             'chr_health_context', 
             'chr_life', 
-            'chr_health_factors'
+            'chr_health_factors',
+            'essential_workers'
         ],
         joinCols: ['GEOID', ['FIPS','fips','countyFIPS']],
         accumulate: [],
@@ -283,7 +289,8 @@ export const dataPresets = {
 			'covid_ccpt_cdc_state',
 			'vaccine_admin1_cdc',
 			'vaccine_admin2_cdc',
-			'vaccine_dist_cdc'
+			'vaccine_dist_cdc',
+            'essential_workers'
 		], 
         tableNames: [
 	        'cases',
@@ -297,7 +304,8 @@ export const dataPresets = {
 			'testing_ccpt',
 			'vaccinesAdmin1',
 			'vaccinesAdmin2',
-			'vaccinesDist'
+			'vaccinesDist',
+            'essential_workers'
         ],
         joinCols: ['GEOID', ['FIPS','fips','fips_code','state_fips','countyFIPS','GEOID']], 
         accumulate: ['covid_confirmed_1p3a_state','covid_deaths_1p3a_state','covid_testing_cdc_state'],
@@ -325,7 +333,8 @@ export const dataPresets = {
             'covid_testing_cdc_state',
             'covid_wk_pos_cdc_state',
             'covid_tcap_cdc_state',
-            'covid_ccpt_cdc_state'
+            'covid_ccpt_cdc_state',
+            'essential_workers'
         ],  
         tableNames: [
             'cases',
@@ -336,7 +345,8 @@ export const dataPresets = {
             'testing',
             'testing_wk_pos',
             'testing_tcap',
-            'testing_ccpt'
+            'testing_ccpt',
+            'essential_workers'
         ],
         joinCols: ['GEOID', ['FIPS','fips','fips_code','state_fips','stateFIPS']],
         accumulate: ['covid_testing_cdc_state'],
@@ -366,7 +376,8 @@ export const dataPresets = {
             'covid_tcap_1p3a_state',
             'covid_ccpt_1p3a_state',
             'vaccine_admin_cdc',
-            'vaccine_dist_cdc'
+            'vaccine_dist_cdc',
+            'essential_workers'
         ], 
         joinCols: ['GEOID', ['FIPS','fips','countyFIPS']], 
         tableNames: [
@@ -380,7 +391,8 @@ export const dataPresets = {
             'testing_tcap', 
             'testing_ccpt',
             'vaccinesAdmin', 
-            'vaccinesDist'
+            'vaccinesDist',
+            'essential_workers'
         ],
         accumulate: ['covid_testing_cdc_state'],
         dateList: {
@@ -422,7 +434,8 @@ export const dataPresets = {
             'covid_testing_cdc',
             'covid_wk_pos_cdc', 
             'covid_tcap_cdc', 
-            'covid_ccpt_cdc'
+            'covid_ccpt_cdc',
+            'essential_workers'
         ],  
         tableNames: [
             'cases',
@@ -434,7 +447,8 @@ export const dataPresets = {
             'testing', 
             'testing_wk_pos', 
             'testing_tcap', 
-            'testing_ccpt'
+            'testing_ccpt',
+            'essential_workers'
         ],
         joinCols: ['GEOID', ['fips_code', 'fips', 'FIPS', 'countyFIPS']],
         accumulate: [],
@@ -830,5 +844,21 @@ export const variablePresets = {
       fixedScale: 'forecasting',
       scale3D: 50000
     },
+    "Percent Essential Workers":{
+      variableName:"Percent Essential Workers",
+      numerator: 'essential_workers',
+      nType: 'characteristic',
+      nProperty: 1,
+      nRange: null,
+      denominator: 'properties',
+      dType: null,
+      dProperty: null,
+      dRange:null,
+      dIndex:null,
+      scale:1,
+      colorScale: 'lifeExp',
+      fixedScale: null,
+      scale3D: 1000
+    },  
 }
   

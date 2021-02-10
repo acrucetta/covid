@@ -263,4 +263,17 @@ export const variableTree = {
             }
         }
     },
+    "Percent Essential Workers": {
+        "County": {
+            "ACS": {
+                "geojson":'county_usfacts.geojson'
+            }
+        },
+        "State": {
+            "ACS": {
+                "geojson":'state_1p3a.geojson'
+            }
+        }
+    },
+    
 }

@@ -409,7 +409,6 @@ function App() {
   }, [window.innerHeight, window.innerWidth])
   // const dragHandlers = {onStart: this.onStart, onStop: this.onStop};
 
-
   return (
     <div className="App">
       <Preloader loaded={mapLoaded} />

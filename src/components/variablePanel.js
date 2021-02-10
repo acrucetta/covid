@@ -17,10 +17,11 @@ import styled from 'styled-components';
 import { colLookup } from '../utils'; //getGzipData, getArrayCSV
 import Tooltip from './tooltip';
 import { StyledDropDown, BinsContainer } from '../styled_components';
-import { setVariableParams, setMapParams, setCurrentData, setPanelState, setParametersAndData } from '../actions'; //variableChangeZ, setNotification, storeMobilityData
+import { setVariableParams, setMapParams, setCurrentData, setPanelState, setParametersAndData, storeData } from '../actions'; //variableChangeZ, setNotification, storeMobilityData
 import { fixedScales, colorScales, colors } from '../config';
 import { settings } from '../config/svg';
 import { variableTree } from '../config/variableTree'
+import { sortedIndex } from 'lodash';
 
 const VariablePanelContainer = styled.div`
   position:fixed;
@@ -362,7 +363,23 @@ const VariablePanel = (props) => {
       fixedScale: null,
       scale3D: 1000
     },
-    
+    "HEADER:workforce":{},
+    "Percent Essential Workers":{
+      variableName:"Percent Essential Workers",
+      numerator: 'essential_workers',
+      nType: 'characteristic',
+      nProperty: 1,
+      nRange: null,
+      denominator: 'properties',
+      dType: null,
+      dProperty: null,
+      dRange:null,
+      dIndex:null,
+      scale:1,
+      colorScale: 'lifeExp',
+      fixedScale: null,
+      scale3D: 1000
+    },    
     "HEADER:testing":{},
     "7 Day Testing Positivity Rate %": {
       variableName:"7 Day Testing Positivity Rate %",
@@ -694,12 +711,14 @@ const VariablePanel = (props) => {
       'CDC':'cdc.geojson',
       'Yu Group at Berkeley':'county_usfacts.geojson',
       'County Health Rankings':'county_usfacts.geojson',
+      'ACS':'county_usfacts.geojson',
     }, 
     'State': {
       '1point3acres':'state_1p3a.geojson',
       'New York Times':'state_nyt.geojson',
       'CDC':'state_1p3a.geojson',
       'County Health Rankings':'state_1p3a.geojson',
+      'ACS':'state_1p3a.geojson',
     }
   }
 
@@ -740,7 +759,7 @@ const VariablePanel = (props) => {
 
   const [newVariable, setNewVariable] = useState("Confirmed Count per 100K Population");
   const [currentGeography, setCurrentGeography] = useState('County');
-  const [currentDataset, setCurrentDataset] = useState('1point3acres');
+  const [currentDataset, setCurrentDataset] = useState('USA Facts');
 
   useEffect(() => {
     if (newVariable !== dataParams.variableName) {
@@ -753,7 +772,6 @@ const VariablePanel = (props) => {
       }
     }
   }, [urlParams])
-  
 
   const handleNewVariable = (e) => {
     let tempGeography = currentGeography;
@@ -851,7 +869,7 @@ const VariablePanel = (props) => {
   }
 
   const allGeographies = ['County', 'State']
-  const allDatasets = ['1point3acres', 'USA Facts', 'New York Times', 'CDC', 'County Health Rankings', 'Yu Group at Berkeley'] //
+  const allDatasets = ['1point3acres', 'USA Facts', 'New York Times', 'CDC', 'County Health Rankings', 'Yu Group at Berkeley', 'ACS'] //
 
   return (
     <VariablePanelContainer className={panelState.variables ? '' : 'hidden'} otherPanels={panelState.info} id="variablePanel">
