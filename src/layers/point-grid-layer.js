@@ -51,7 +51,7 @@ const svgToDataURL = (svg) => {
 const generatePoints = (points, zoom) => {
     const dimension = Math.ceil(Math.sqrt(points.children.length));
     const center = points.geometry.coordinates;
-    const dist = (1/(2**(zoom/1.8)))*150;
+    const dist = (1/(2**(zoom/1.8)))*100;
 
     const yStep = (360/40075)*dist;
     const xStep = (360/40075)*dist;
@@ -60,14 +60,7 @@ const generatePoints = (points, zoom) => {
     const offsetY = dimension % 2 === 0 ? (dimension-1)*yStep/2 : (Math.floor(dimension/2))*yStep
 
     const cleanPoint = zoom <= 7 ? sortBy(points.children, d => d.properties.value) : points.children
-    return zoom > 11 ? 
-        cleanPoint.map((data, idx) => ({
-          coords: data.geometry.coordinates,
-          radius: data.properties.scale,
-          value: data.properties.value,
-          GEOID: data.properties.GEOID
-      }))
-      : cleanPoint.map((data, idx) => ({
+    return cleanPoint.map((data, idx) => ({
         coords: [
             center[0]+(xStep*(idx%dimension))-offsetX,
             center[1]-(yStep*(Math.floor(idx/dimension)))+offsetY
@@ -151,7 +144,7 @@ export default class PointGridLayer extends CompositeLayer {
               opacity: 0.8,
               stroked: false,
               filled: true,
-              radiusScale: (24-(z**(2*z/24)))*z,
+              radiusScale: (36-(z**(2*z/24)))*z,
               radiusUnits:'meters',
               radiusMinPixels: 2,
               lineWidthMinPixels: 1,

@@ -875,7 +875,7 @@ const Map = (props) => {
             data: currentMapData.data,
             pickable:true,
             getPosition: d => d.geom,
-            radiusScale: (1/mapRef.current.props.viewState.zoom)*2000,
+            radiusScale: (1/mapRef.current.props.viewState.zoom**1.3)*5000,
             radiusMinPixels: 1,
             radiusMaxPixels: 100,
             lineWidthMinPixels: 1,
