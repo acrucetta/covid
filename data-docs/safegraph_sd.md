@@ -15,15 +15,97 @@ Source is [here](https://docs.safegraph.com/docs/social-distancing-metrics) via 
 The data was generated using a panel of GPS pings from anonymous mobile devices. We determine the common nighttime location of each mobile device over a 6 week period to a Geohash-7 granularity (~153m x ~153m). For ease of reference, we call this common nighttime location, the device's "home". We then aggregate the devices by home census block group and provide the metrics set out below for each census block group. [1]
 
 ### Description of Data Processing: 
-TBD
+The data used for the COVID Atlas was split into weekday, weekly, and daily patterns. The team
+also created dataframes comparing percentages of people at work in 2020 or 2021 with 2019 (pre-COVID).
 
 ### Key Variable and Definitions:
 
-Safegraph Data Schema
+Weekly delivery behavior percent
 
 | Variable | Variable ID in .csv | Description |
 |:---------|:--------------------|:------------|
-| Readable Name | Column Name | Description |
+| FIPS Code (Join Column) | `fips_code` | County level fips code to join to county geospatial data |
+| Week Day | YYYY-MM-DD | Percentage of delivery workers for that day |
+
+Daily percent of full-time workers
+
+| Variable | Variable ID in .csv | Description |
+|:---------|:--------------------|:------------|
+| FIPS Code (Join Column) | `fips_code` | County level fips code to join to county geospatial data |
+| Day | YYYY-MM-DD | Percentage of full-time workers for that day |
+
+Week-day percent of full-time workers
+
+| Variable | Variable ID in .csv | Description |
+|:---------|:--------------------|:------------|
+| FIPS Code (Join Column) | `fips_code` | County level fips code to join to county geospatial data |
+| Week Day | YYYY-MM-DD | Percentage of full-time workers for that weekday |
+
+Daily percent of home-dwellers
+
+| Variable | Variable ID in .csv | Description |
+|:---------|:--------------------|:------------|
+| FIPS Code (Join Column) | `fips_code` | County level fips code to join to county geospatial data |
+| Day | YYYY-MM-DD | Percentage of home dwellers for that day |
+
+Daily percent of part-time workers
+
+| Variable | Variable ID in .csv | Description |
+|:---------|:--------------------|:------------|
+| FIPS Code (Join Column) | `fips_code` | County level fips code to join to county geospatial data |
+| Day | YYYY-MM-DD | Percentage of part-time workers for that day |
+
+Week-day percent of part-time workers
+
+| Variable | Variable ID in .csv | Description |
+|:---------|:--------------------|:------------|
+| FIPS Code (Join Column) | `fips_code` | County level fips code to join to county geospatial data |
+| Week Day | YYYY-MM-DD | Percentage of part-time workers for that weekday |
+
+Change of full-time workers from 2019 to a particular week
+
+| Variable | Variable ID in .csv | Description |
+|:---------|:--------------------|:------------|
+| FIPS Code (Join Column) | `fips_code` | County level fips code to join to county geospatial data |
+| Week | YYYY-MM-DD | Percentage change of full-time workers from 2019 for that week |
+
+Change of home dwellers from 2019 to a particular week
+
+| Variable | Variable ID in .csv | Description |
+|:---------|:--------------------|:------------|
+| FIPS Code (Join Column) | `fips_code` | County level fips code to join to county geospatial data |
+| Week | YYYY-MM-DD | Percentage change of home dwellers from 2019 for that week |
+
+Change of part-time workers from 2019 to a particular week
+
+| Variable | Variable ID in .csv | Description |
+|:---------|:--------------------|:------------|
+| FIPS Code (Join Column) | `fips_code` | County level fips code to join to county geospatial data |
+| Week | YYYY-MM-DD | Percentage change of part-time workers from 2019 for that week |
+
+Percentage of people at home for a particular week
+
+| Variable | Variable ID in .csv | Description |
+|:---------|:--------------------|:------------|
+| Week | YYYY-MM-DD | Percentage of people at home for that week |
+| FIPS Code (Join Column) | `fips_code` | County level fips code to join to county geospatial data |
+| Percent of people home | pct_home | Percentage of people home for that week |
+
+Percentage of full-time workers for a particular week
+
+| Variable | Variable ID in .csv | Description |
+|:---------|:--------------------|:------------|
+| Week | YYYY-MM-DD | Percentage of full-time workers for that week |
+| FIPS Code (Join Column) | `fips_code` | County level fips code to join to county geospatial data |
+| Percent of people full-time | pct_fulltime | Percentage of people working full-time for that week |
+
+Percentage of part-time workers for a particular week
+
+| Variable | Variable ID in .csv | Description |
+|:---------|:--------------------|:------------|
+| Week | YYYY-MM-DD | Percentage of part-time workers for that week |
+| FIPS Code (Join Column) | `fips_code` | County level fips code to join to county geospatial data |
+| Percent of people part-time | pct_parttime | Percentage of people working part-time for that week |
 
 ### Data Limitations:
 To preserve privacy, we apply differential privacy to all of the device count metrics other than the device_count. This may cause the exact sum of devices to not equal device_count, especially for sparsely populated origin_census_block_group. Differential privacy is applied to all of the following columns: completely_home_device_count, part_time_work_behavior_devices, full_time_work_behavior_devices, delivery_behavior_devices, at_home_by_each_hour, bucketed_away_from_home_time, bucketed_distance_traveled, bucketed_home_dwell_time, bucketed_percentage_time_home. [1]
