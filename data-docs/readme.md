@@ -31,8 +31,8 @@ The below datasets currently being explored and may be available in a future rel
 
 | Dataset | Variables | Data Docs | Source Link | Data Scripts | API Access | 
 |:---------|:-----|:-----|:-----|:-----|:------|
-|Safegraph Social Distancing|Percent of Devices Completely At Home, Full Time Behavior, Part Time Behavior|[📄](http://www.github.com/GeoDaCenter/covid/data-docs/data-docs/safegraph.md)|[🔗](https://docs.safegraph.com/docs/social-distancing-metrics)|||
-|Safegraph POI Visits|POI Visits by County Totals and Normalized |[📄](http://www.github.com/GeoDaCenter/covid/data-docs/data-docs/safegraph.md)|[🔗](https://docs.safegraph.com/docs/weekly-patterns)|||
+|Safegraph Social Distancing|Percent of Devices Completely At Home, Full Time Behavior, Part Time Behavior|[📄](http://www.github.com/GeoDaCenter/covid/data-docs/data-docs/safegraph.md)|[🔗](https://docs.safegraph.com/docs/social-distancing-metrics)|[👩‍💻](https://github.com/GeoDaCenter/covid/tree/master/data-scripts/safegraph)||
+|Safegraph POI Visits|POI Visits by County Totals and Normalized |[📄](http://www.github.com/GeoDaCenter/covid/data-docs/data-docs/safegraph.md)|[🔗](https://docs.safegraph.com/docs/weekly-patterns)|[👩‍💻](https://github.com/GeoDaCenter/covid/tree/master/data-scripts/safegraph)||
 
 ## Geographic Boundaries
 
